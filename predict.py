@@ -27,6 +27,33 @@ parser.add_argument("--gpu",
                     action="store_true",
                     help="Use GPU for inference if available")
 
+def load_checkpoint(filepath, device='cpu'):
+    """Load a trained model checkpoint for inference."""
+
+    # PyTorch 2.6 requires disabling weights_only for full checkpoint loading
+    checkpoint = torch.load(filepath, map_location=device, weights_only=False)
+
+    # Load the architecture
+    if checkpoint['architecture'] == 'vgg16':
+        model = models.vgg16(pretrained=True)
+    else:
+        raise ValueError(f"Unsupported architecture: {checkpoint['architecture']}")
+
+    # Restore classifier
+    model.classifier = checkpoint['classifier']
+
+    # Restore mapping
+    model.class_to_idx = checkpoint['class_to_idx']
+
+    # Restore weights
+    model.load_state_dict(checkpoint['state_dict'])
+
+    model.to(device)
+    model.eval()
+
+    return model
+
+
 def main():
     pass
 
