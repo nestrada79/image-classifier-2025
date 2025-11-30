@@ -120,6 +120,28 @@ def build_model(arch='vgg16', hidden_units=512, learning_rate=0.003):
     return model, criterion, optimizer
 
 
+# Validation Function
+
+def validate(model, dataloader, criterion, device):
+    model.eval()
+    loss = 0
+    accuracy = 0
+
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            batch_loss = criterion(outputs, labels)
+            loss += batch_loss.item()
+
+            _, preds = torch.max(outputs, 1)
+            accuracy += torch.mean((preds == labels).float()).item()
+
+    return loss / len(dataloader), accuracy / len(dataloader)
+
+
+
 def main():
     
     pass
