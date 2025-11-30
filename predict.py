@@ -121,7 +121,58 @@ def predict(image_path, model, topk=5, device='cpu'):
 
 
 def main():
-    pass
+
+    
+    # Parse command-line arguments
+   
+    args = parser.parse_args()
+
+    image_path = args.image_path
+    checkpoint_path = args.checkpoint
+    top_k = args.top_k
+    category_names = args.category_names
+    use_gpu = args.gpu
+
+    
+    # Device selection
+    
+    if use_gpu and torch.cuda.is_available():
+        device = 'cuda'
+    else:
+        device = 'cpu'
+
+    
+    # Load category names (JSON)
+    
+    with open(category_names, 'r') as f:
+        cat_to_name = json.load(f)
+
+
+    # Load model checkpoint
+    
+    model = load_checkpoint(checkpoint_path, device=device)
+
+
+    # Make prediction
+   
+    probs, classes = predict(image_path, model, top_k, device)
+
+    # Convert class labels → flower names
+    flower_names = [cat_to_name[c] for c in classes]
+
+ 
+    # Print results
+    
+    print("\nTop K Probabilities:")
+    print(probs)
+
+    print("\nCorresponding Class Labels:")
+    print(classes)
+
+    print("\nFlower Names:")
+    for i in range(len(flower_names)):
+        print(f"{i+1}: {flower_names[i]} ({probs[i]:.4f})")
+
 
 if __name__ == "__main__":
     main()
