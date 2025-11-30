@@ -141,6 +141,63 @@ def validate(model, dataloader, criterion, device):
     return loss / len(dataloader), accuracy / len(dataloader)
 
 
+# Train the Model
+
+def train_model(model, train_loader, valid_loader, criterion, optimizer, epochs, device):
+    print("Training starting...\n")
+
+    model.to(device)
+
+    for e in range(epochs):
+        running_loss = 0
+        model.train()
+
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            optimizer.zero_grad()
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+
+        # Validation after each epoch
+        valid_loss, valid_acc = validate(model, valid_loader, criterion, device)
+
+        print(f"Epoch {e+1}/{epochs}.. "
+              f"Train Loss: {running_loss/len(train_loader):.3f}.. "
+              f"Valid Loss: {valid_loss:.3f}.. "
+              f"Valid Acc: {valid_acc:.3f}")
+
+    print("\nTraining complete!")
+    return model
+
+
+# Save the Checkpoint
+
+def save_checkpoint(model, save_dir, arch, class_to_idx):
+    checkpoint = {
+        'architecture': arch,
+        'classifier': model.classifier,
+        'state_dict': model.state_dict(),
+        'class_to_idx': class_to_idx
+    }
+
+    # Ensure save dir exists
+    os.makedirs(save_dir, exist_ok=True)
+
+    # Full path to save file
+    save_path = os.path.join(save_dir, 'checkpoint.pth')
+
+    torch.save(checkpoint, save_path)
+
+    print(f"\nCheckpoint saved to: {save_path}")
+
+
+
 
 def main():
     
